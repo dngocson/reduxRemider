@@ -1,10 +1,11 @@
-import { useState } from "react";
-import Counter from "./feature/counter/Counter";
+import AddPostForm from "./feature/post/AddPostForm";
+import PostList from "./feature/post/PostList";
 
 function App() {
   return (
     <div className="container">
-      <Counter></Counter>
+      <PostList />
+      <AddPostForm />
     </div>
   );
 }

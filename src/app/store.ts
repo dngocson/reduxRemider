@@ -1,10 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import couterReducer from "../feature/counter/counterSlice";
+
 import { useDispatch } from "react-redux";
+import postReducer from "../feature/post/postSlice";
 
 export const store = configureStore({
   reducer: {
-    counter: couterReducer,
+    post: postReducer,
   },
 });
 
