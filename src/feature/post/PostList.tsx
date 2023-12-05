@@ -1,23 +1,33 @@
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { getAllPost } from "./postSlice";
-import PostAuthor from "./PostAuthor";
-import TimeAgo from "./TimeAgo";
+import { useAppDispatch } from "../../app/store";
+import PostExcerpts from "./PostExcerpts";
+import {
+  fetchPosts,
+  getAllPost,
+  // getPostsError,
+  getPostsStatus,
+} from "./postSlice";
 
 function PostList() {
+  const dispatch = useAppDispatch();
   const posts = useSelector(getAllPost);
+  const postsStatus = useSelector(getPostsStatus);
+  // const postsError = useSelector(getPostsError);
 
-  const renderPost = posts.map((post) => (
-    <article key={post.id}>
-      <h3>{post.title}</h3>
-      <p>{post.content}</p>
-      <p>
-        author :<PostAuthor userId={post?.user?.userId || undefined} />
-      </p>
-      <TimeAgo timestamp={post.date} />
-    </article>
-  ));
+  useEffect(() => {
+    if (postsStatus === "idle") {
+      dispatch(fetchPosts());
+    }
+  }, [postsStatus, dispatch]);
 
-  return <section>{renderPost}</section>;
+  return (
+    <section>
+      {posts.map((post) => (
+        <PostExcerpts key={post.id} post={post} />
+      ))}
+    </section>
+  );
 }
 
 export default PostList;

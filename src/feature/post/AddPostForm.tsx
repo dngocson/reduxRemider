@@ -10,7 +10,7 @@ const postSchema = z
   .object({
     title: z.string().min(1),
     content: z.string().min(1),
-    userName: z.string().min(1),
+    name: z.string().min(1),
     password: z.string().min(5).max(10),
     passwordConfirm: z.string(),
   })
@@ -36,7 +36,7 @@ function AddPostForm() {
   const onSubmit = function (data: postSchemaType) {
     // Can add many parameter to action.payload => construc with prepare
     // dispatch(postAdd(data.title,data.content));
-    console.log("data", data);
+
     dispatch(postAdd(data));
 
     reset();
@@ -49,7 +49,7 @@ function AddPostForm() {
         <label>Content</label>
         <input {...register("content")} type="text" />
         <label>User</label>
-        <select {...register("userName")}>
+        <select {...register("name")}>
           {users.map((user) => (
             <option key={user.id} value={user.name}>
               {user.name}

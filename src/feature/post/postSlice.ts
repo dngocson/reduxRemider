@@ -1,65 +1,96 @@
-import { createSlice, nanoid, PayloadAction } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  nanoid,
+  PayloadAction,
+  createAsyncThunk,
+} from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import { sub } from "date-fns";
+import axios from "axios";
 
-type Post = {
+const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
+export type PostItem = {
   id: string;
   title: string;
-  content: string;
+  body: string;
   date: string;
-  user?: { userName: string; userId: string };
+  userId: string;
 };
 
-type PostState = (Post & { user?: { userName: string; userId: string } })[];
+type Post = {
+  posts: PostItem[];
+  status: string;
+  error: string | null;
+};
 
-const initialState: PostState = [
-  {
-    id: "1",
-    title: "sleeping beauty",
-    content: "snow white by my side",
-    date: sub(new Date(), { minutes: 10 }).toISOString(),
-  },
-  {
-    id: "2",
-    title: "red beast",
-    content: "kong and gozilla",
-    date: sub(new Date(), { minutes: 20 }).toISOString(),
-  },
-];
+const initialState: Post = {
+  posts: [],
+  status: "idle",
+  error: null,
+};
+
+export const fetchPosts = createAsyncThunk("/post/fetchPosts", async () => {
+  try {
+    const response = await axios.get(POSTS_URL);
+    return [...response.data];
+  } catch (err) {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    return "An error occurred";
+  }
+});
 
 const postSlice = createSlice({
   name: "post",
   initialState,
   reducers: {
     postAdd: {
-      reducer(state, action: PayloadAction<Post>) {
-        state.push(action.payload);
+      reducer(state, action: PayloadAction<PostItem>) {
+        state.posts.push(action.payload);
       },
-      //   prepare(title, content) {
-      //     return {
-      //       payload: {
-      //         id: nanoid(),
-      //         title,
-      //         content,
-      //       },
-      //     };
-      //   },
       prepare(data) {
         return {
           payload: {
             id: nanoid(),
             date: sub(new Date(), { minutes: 5 }).toISOString(),
             title: data.title,
-            content: data.content,
-            user: { userName: data.user.userName, userId: nanoid() },
+            body: data.content,
+            userId: nanoid(),
           },
         };
       },
     },
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchPosts.pending, (state) => {
+        state.status = " loading";
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = "success";
+        if (typeof action.payload === "string") {
+          state.error = action.payload;
+        } else {
+          let min = 1;
+          const loadedPosts = action.payload.map((post: PostItem) => {
+            post.date = sub(new Date(), { minutes: min++ }).toISOString();
+            return post;
+          });
+
+          state.posts = state.posts.concat(loadedPosts);
+        }
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = "false";
+        state.error = action.error.message || null;
+      });
   },
 });
 
 export default postSlice.reducer;
 export const { postAdd } = postSlice.actions;
 
-export const getAllPost = (state: RootState) => state.post;
+export const getAllPost = (state: RootState) => state.posts.posts;
+export const getPostsStatus = (state: RootState) => state.posts.status;
+export const getPostsError = (state: RootState) => state.posts.error;
