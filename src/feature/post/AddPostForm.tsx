@@ -1,13 +1,16 @@
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { useAppDispatch } from "../../app/store";
 import { postAdd } from "./postSlice";
+import { useSelector } from "react-redux";
+import { selectAllUser } from "../users/userSlice";
 
 const postSchema = z
   .object({
-    title: z.string(),
-    content: z.string(),
+    title: z.string().min(1),
+    content: z.string().min(1),
+    userName: z.string().min(1),
     password: z.string().min(5).max(10),
     passwordConfirm: z.string(),
   })
@@ -19,6 +22,7 @@ const postSchema = z
 type postSchemaType = z.infer<typeof postSchema>;
 
 function AddPostForm() {
+  const users = useSelector(selectAllUser);
   const dispatch = useAppDispatch();
   const {
     register,
@@ -32,6 +36,7 @@ function AddPostForm() {
   const onSubmit = function (data: postSchemaType) {
     // Can add many parameter to action.payload => construc with prepare
     // dispatch(postAdd(data.title,data.content));
+    console.log("data", data);
     dispatch(postAdd(data));
 
     reset();
@@ -43,6 +48,14 @@ function AddPostForm() {
         <input {...register("title")} type="text" />
         <label>Content</label>
         <input {...register("content")} type="text" />
+        <label>User</label>
+        <select {...register("userName")}>
+          {users.map((user) => (
+            <option key={user.id} value={user.name}>
+              {user.name}
+            </option>
+          ))}
+        </select>
         <br />
         <p>Testing form validation with zod</p>
         <label>password</label>
